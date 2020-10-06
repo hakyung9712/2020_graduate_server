@@ -6,7 +6,7 @@ import numpy as np
 from scipy import misc
 from werkzeug.utils import secure_filename
 from tensorflow import keras
-from keras.utils import Sequence                                # 이 모듈이 없으면 사용자가 만든 generator에서 'shape'가 없다고 하는 에러가 발생할 수 있음
+from keras.utils import Sequence                                
 import matplotlib.pyplot as plt
 import time
 import argparse
@@ -32,10 +32,8 @@ import soundfile as sf
 import sounddevice as sd
 import queue
 
-server='http://165.132.46.179:2222'
 app = Flask(__name__)
-#UPLOAD_FOLDER = '/uploads'
-UPLOAD_FOLDER = 'C:/Users/hakyu/Downloads/flask_ex/predict'
+UPLOAD_FOLDER = 'C:/Users/hakyu/ROA/ROA_flask/predict'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
 app.config['ALLOWED_EXTENSIONS'] = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'wav'])
 
@@ -56,15 +54,10 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
 
-            #main('-p')
             features, filenames = parse_predict_files('predict')
             np.save('predict_feat.npy', features)
             np.save('predict_filenames.npy', filenames)
             label=predict('-p')
-            #result=label
-
-    #if request.method=='GET':
-        #return jsonify(hello=result) 
 
         return jsonify(result=label)
     return jsonify(result='error')
@@ -72,12 +65,10 @@ def upload_file():
 @app.route('/result',methods = ['GET'])    
 def return_result():
     if request.method =='GET':
-        #final=predict('-p')
         features, filenames = parse_predict_files('predict')
         np.save('predict_feat.npy', features)
         np.save('predict_filenames.npy', filenames)
         label=predict('-p')
-        #return jsonify(result='final')
         return jsonify(result=label)
     return jsonify(result='error')
 
@@ -145,21 +136,12 @@ def predict(args):
     X_predict = np.expand_dims(X_predict, axis=2)
 
     pred = model.predict_classes(X_predict)
-    #pred = model.predict(X_predict)
     print(pred)
     label_list=pred.tolist()
     label=label_list[0]
     print(label)
-    
-
-
-    #for pair in list(zip(filenames, pred)):
-        #print(pair)
-        #label=str(pair)
-        #print(pair.type)
 
     return label
-
 
 
 def main(args):
@@ -171,7 +153,4 @@ def main(args):
 
 if __name__ == '__main__':
     model=keras.models.load_model('FINAL_graduation_air_model2.h5')
-    
-    #app.run(host='0.0.0.0', port=8000, debug=True)
-    #app.run(host="165.132.46.179", port=2222, debug=True)
     app.run(host="192.168.35.246", debug=True)
